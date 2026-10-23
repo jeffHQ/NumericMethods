@@ -1,0 +1,16 @@
+# LaTeX
+informe/build/
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+
+# MATLAB
+*.asv
+slprj/
+*.mexw64
+
+# graphify (cache local)
+graphify-out/cache/

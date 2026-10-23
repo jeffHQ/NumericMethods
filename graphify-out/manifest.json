@@ -1,0 +1,194 @@
+{
+  ".claude/settings.json": {
+    "mtime": 1792793700.9679935,
+    "seen": 1792794536.886113,
+    "ast_hash": "509841a9bba101c192bdc78a5f71cf6f",
+    "semantic_hash": ""
+  },
+  ".vscode/extensions.json": {
+    "mtime": 1792794520.689595,
+    "seen": 1792794536.8861232,
+    "ast_hash": "5a1d6d5d21cc2964d3478b74d819d67f",
+    "semantic_hash": ""
+  },
+  ".vscode/settings.json": {
+    "mtime": 1792795263.3273914,
+    "seen": 1792795276.2281432,
+    "ast_hash": "e46cf1bbe92f1eacceee6b5cdf4d6147",
+    "semantic_hash": ""
+  },
+  "CLAUDE.md": {
+    "mtime": 1792793700.961946,
+    "seen": 1792794536.88615,
+    "ast_hash": "67d88e9d0760c3ba54c75dfd9551c1c5",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1792796558.7271895,
+    "seen": 1792796559.7912374,
+    "ast_hash": "c090507325199c0a5453bddf51612fde",
+    "semantic_hash": ""
+  },
+  "informe/figuras/fig_barrido_v.png": {
+    "mtime": 1792796147.3874667,
+    "seen": 1792796559.7912486,
+    "ast_hash": "d4331e7aa7789e9822f60a777e22b1a5",
+    "semantic_hash": ""
+  },
+  "informe/figuras/fig_evolucion.png": {
+    "mtime": 1792796141.9997625,
+    "seen": 1792796559.7912505,
+    "ast_hash": "a39667f4fd209260af0b3e462774151d",
+    "semantic_hash": ""
+  },
+  "informe/figuras/fig_terminos.png": {
+    "mtime": 1792796144.4920275,
+    "seen": 1792796559.791252,
+    "ast_hash": "0f50886490c1f3c4f45bc9dbdddc0ca8",
+    "semantic_hash": ""
+  },
+  "informe/logo_utec.png": {
+    "mtime": 1792795110.7123528,
+    "seen": 1792795276.2281795,
+    "ast_hash": "5a117d921ba4ed8cf2af700ef29f4110",
+    "semantic_hash": ""
+  },
+  "matlab/funciones/completar_parametros.m": {
+    "mtime": 1792793752.4603693,
+    "seen": 1792796559.7912169,
+    "ast_hash": "789e1fef0c973c7370d8b53f96d96757",
+    "semantic_hash": ""
+  },
+  "matlab/funciones/error_vs_referencia.m": {
+    "mtime": 1792795861.5308454,
+    "seen": 1792796559.7912185,
+    "ast_hash": "f789996653c2f3945c88997fd23f0d16",
+    "semantic_hash": ""
+  },
+  "matlab/funciones/evaluar_f.m": {
+    "mtime": 1792793752.273036,
+    "seen": 1792796559.7912207,
+    "ast_hash": "6b65cd6453aaad26c241cb9b505023c0",
+    "semantic_hash": ""
+  },
+  "matlab/funciones/gauss_seidel_solver.m": {
+    "mtime": 1792795861.4579525,
+    "seen": 1792796559.7912219,
+    "ast_hash": "f29323bb9f3636c4663537e6bf387b5b",
+    "semantic_hash": ""
+  },
+  "matlab/funciones/leyenda_lateral.m": {
+    "mtime": 1792794044.5811682,
+    "seen": 1792796559.7912233,
+    "ast_hash": "677904e091de65b8ec0242608d093479",
+    "semantic_hash": ""
+  },
+  "matlab/funciones/newton_raphson_sdirk.m": {
+    "mtime": 1792795861.4589524,
+    "seen": 1792796559.7912245,
+    "ast_hash": "7901afdc566a67bc87d1ef32c320c80a",
+    "semantic_hash": ""
+  },
+  "matlab/funciones/nueva_figura.m": {
+    "mtime": 1792794044.5247512,
+    "seen": 1792796559.791226,
+    "ast_hash": "cc1e677b2e111329ff24b17169d5851e",
+    "semantic_hash": ""
+  },
+  "matlab/funciones/parametros_base.m": {
+    "mtime": 1792795861.459954,
+    "seen": 1792796559.7912269,
+    "ast_hash": "a6e58fd0ffd1ef6d9d3c5d8e0b315354",
+    "semantic_hash": ""
+  },
+  "matlab/funciones/posicion_frente.m": {
+    "mtime": 1792793752.3866365,
+    "seen": 1792796559.7912278,
+    "ast_hash": "771a208002ecac3ab37212e53d143fcc",
+    "semantic_hash": ""
+  },
+  "matlab/funciones/simular_sdirk.m": {
+    "mtime": 1792793752.4951217,
+    "seen": 1792796559.791229,
+    "ast_hash": "b60fff538ce98728d3ecf383ad402612",
+    "semantic_hash": ""
+  },
+  "matlab/funciones/solucion_referencia.m": {
+    "mtime": 1792795861.5768225,
+    "seen": 1792796559.7912302,
+    "ast_hash": "7717b5bc33fe22cd3a769c6bd54494e9",
+    "semantic_hash": ""
+  },
+  "matlab/generar_mlx.m": {
+    "mtime": 1792796107.751663,
+    "seen": 1792796559.791231,
+    "ast_hash": "3a2e7117d65a3859d3388233b44aa00c",
+    "semantic_hash": ""
+  },
+  "matlab/main.m": {
+    "mtime": 1792795936.84675,
+    "seen": 1792796559.791232,
+    "ast_hash": "012665e91529bdaa4e9a9b08a44ea94b",
+    "semantic_hash": ""
+  },
+  "docs/plantilla_elsevier/manifest.txt": {
+    "mtime": 1792795110.8857255,
+    "seen": 1792796559.7912383,
+    "ast_hash": "88462ad1f23950d54eb1d6ad1d604c9f",
+    "semantic_hash": ""
+  },
+  "docs/Lineamientos de Proyecto.pdf": {
+    "mtime": 1792795470.7651167,
+    "seen": 1792796559.7912397,
+    "ast_hash": "52ce4ce5d3254f5b414cbd33b4e709c8",
+    "semantic_hash": ""
+  },
+  "docs/plantilla_elsevier/1pseperateaug.pdf": {
+    "mtime": 1792795110.8337603,
+    "seen": 1792796559.7912407,
+    "ast_hash": "f3ad68b8a1f690d7622cc020bc18fd52",
+    "semantic_hash": ""
+  },
+  "docs/plantilla_elsevier/1psingleauthorgroup.pdf": {
+    "mtime": 1792795110.818035,
+    "seen": 1792796559.7912416,
+    "ast_hash": "76bbcaa06166ca565bb5f962e8b65ac5",
+    "semantic_hash": ""
+  },
+  "docs/plantilla_elsevier/ASCOM_journal_cover.pdf": {
+    "mtime": 1792795110.8027818,
+    "seen": 1792796559.7912428,
+    "ast_hash": "8c0666522d91318991cc780a0a766ad4",
+    "semantic_hash": ""
+  },
+  "docs/plantilla_elsevier/PHYSO_cover_image.pdf": {
+    "mtime": 1792795110.7871087,
+    "seen": 1792796559.7912438,
+    "ast_hash": "01190a36b7e4498984a1733c1293b277",
+    "semantic_hash": ""
+  },
+  "docs/plantilla_elsevier/elstest-5p.pdf": {
+    "mtime": 1792795110.7564836,
+    "seen": 1792796559.7912445,
+    "ast_hash": "39eac4a41eeb6c90517201deb6927ec7",
+    "semantic_hash": ""
+  },
+  "docs/plantilla_elsevier/jfigs.pdf": {
+    "mtime": 1792795110.7350237,
+    "seen": 1792796559.7912455,
+    "ast_hash": "7cc7705deb1891a9a2b6d522bad80ceb",
+    "semantic_hash": ""
+  },
+  "docs/figuras_previas/Resultado1.png": {
+    "mtime": 1792795110.690781,
+    "seen": 1792796559.7912464,
+    "ast_hash": "8cc04f537ea95f577e62808fa8676069",
+    "semantic_hash": ""
+  },
+  "docs/figuras_previas/Resultado2.png": {
+    "mtime": 1792795110.6666272,
+    "seen": 1792796559.7912474,
+    "ast_hash": "653d45e36d77ce6b107e5ded96552629",
+    "semantic_hash": ""
+  }
+}

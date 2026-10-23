@@ -1,0 +1,388 @@
+\documentclass[final,5p,times,twocolumn,authoryear,11pt]{elsarticle}
+
+\usepackage[spanish]{babel}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{url}
+
+\raggedbottom
+
+\journal{Métodos Numéricos CC2104}
+
+\begin{document}
+
+% ==================== PORTADA DE EVALUACIÓN ====================
+\begin{titlepage}
+    \centering
+    \includegraphics[width=0.35\textwidth]{logo_utec.png} \par
+    \vspace{1cm}
+
+    {\Huge \bfseries
+Modelamiento numérico transitorio del transporte de calor 1D en el flujo sobre un tubo cilíndrico con difusividad térmica variable
+    \par}
+    \vspace{2cm}
+
+    {\Large \bfseries Integrantes: \par}
+    \vspace{0.5cm}
+    \begin{tabular}{ll}
+        Calapuja Quispe, Angela Lorena & (202310600) \\
+        Dongo Triveño, Daniel Mateo & (202310506)\\
+        Hilario Quintana, Jeffry Arturo & (202020082)\\
+        Zorrilla Pelaez, María José & (202510379)\\
+    \end{tabular}
+
+    \vspace{2cm}
+
+    {\Large \bfseries Métodos Numéricos (CC2104) \par}
+    \vspace{0.5cm}
+    {\large Profesor: Ponce Cegovia, Roger Ivan \par}
+
+    \vfill
+
+    % COMPLETAR la fecha de entrega
+    {\large Fecha de entrega: 18/10/2026 \par}
+    \vspace{1cm}
+\end{titlepage}
+
+\newpage
+\setcounter{page}{1}
+
+% ==================== INICIO DEL PAPER ====================
+\begin{frontmatter}
+
+\title{Modelamiento numérico transitorio del transporte de calor 1D en el flujo sobre un tubo cilíndrico con difusividad térmica variable}
+
+\author[utec]{Calapuja Quispe, Angela Lorena}
+\ead{angela.calapuja@utec.edu.pe}
+
+\author[utec]{Dongo Triveño, Daniel Mateo}
+\ead{daniel.dongo@utec.edu.pe}
+
+\author[utec]{Hilario Quintana, Jeffry Arturo}
+\ead{jeffry.hilario@utec.edu.pe}
+
+\author[utec]{Zorrilla Pelaez, María José}
+\ead{maria.zorrilla@utec.edu.pe}
+
+\affiliation[utec]{organization={Universidad de Ingeniería y Tecnología},
+            city={Lima},
+            country={Perú}}
+
+\end{frontmatter}
+
+% ==================== CUERPO DEL DOCUMENTO ====================
+
+\section{Introducción}
+\label{sec:introduccion}
+
+El análisis numérico del transporte de calor en fluidos que se mueven sobre superficies sólidas es un tema importante de la ingeniería térmica, con aplicaciones en sistemas de enfriamiento industrial, intercambiadores de calor de tubos y componentes de turbomaquinaria. En estos sistemas, el fluido arrastra la temperatura con su movimiento (advección) y, al mismo tiempo, la temperatura se reparte por conducción (difusión). Además, las propiedades térmicas de los materiales no son constantes: la difusividad térmica cambia con la temperatura, y suponerla constante puede dar una descripción poco realista cuando los cambios de temperatura son grandes \citep{Wang2022, Filipov2023}. Esta dependencia hace que la ecuación del calor sea no lineal, y para ella casi nunca existen soluciones exactas, por lo que se recurre a métodos numéricos.
+
+Como contexto físico se toma el flujo sobre un tubo cilíndrico en régimen estacionario y transitorio, que \citet{Singh2025} estudiaron mediante dinámica de fluidos computacional. A partir de este escenario, se adopta una formulación unidimensional de advección-difusión para el transporte de la temperatura, en la cual el flujo no se resuelve: su velocidad $v$ entra como dato conocido, y el dominio es una línea de corriente que va desde la corriente libre hasta la superficie del cilindro. A lo largo de esa línea interesa cómo se transporta y se reparte la temperatura. 
+
+El estudio numérico de la conducción de calor con propiedades que dependen de la temperatura se abordó con distintas técnicas. \citet{Wang2022} combinaron la transformación de Kirchhoff con un método sin malla, \citet{Ejaz2024} propusieron un algoritmo de colocación para una difusividad térmica no uniforme, \citet{Aznam2019} usaron wavelets de Haar en problemas de aletas con transferencia de calor no lineal, y \citet{Filipov2023} resolvieron la transferencia de calor transitoria con conductividad que depende de la temperatura mediante una discretización implícita en el tiempo. Para avanzar en el tiempo problemas de convección-difusión, \citet{Deng2014} emplearon métodos de Runge-Kutta diagonalmente implícitos de segundo y cuarto orden, \citet{Levy2022} reportaron que estos métodos fueron más estables y precisos que los métodos BDF de alto orden en los problemas que estudiaron, y \citet{Wang2015} desarrolló un método de este tipo, de cuarto orden, para la ecuación de Burgers 1D. \citet{Boscarino2015} propusieron métodos Runge-Kutta IMEX linealmente implícitos para problemas de convección-difusión con difusión degenerada, que evitan resolver sistemas no lineales; en este trabajo, en cambio, la no linealidad se resuelve con Newton-Raphson en cada etapa implícita, lo que permite medir su costo. \citet{Bevan2016} compararon formas implícitas y explícitas de un método de paso fraccionado en flujos incompresibles, y el hecho de que un esquema sea implícito o explícito influye en su estabilidad \citep{Butcher1996}. Por último, la convergencia de los métodos iterativos para sistemas lineales depende de las propiedades de la matriz \citep{Zhang2015}
+
+Sin embargo, en la literatura revisada predominan los estudios de conducción no lineal sin un escenario de flujo, y los estudios de métodos implícitos se centran en otras ecuaciones. Por eso hace falta un modelo propio y claro para el transporte transitorio de calor con difusividad variable, que permita medir la precisión, la robustez y el costo de la combinación de un método implícito para avanzar en el tiempo, un método para la no linealidad y un método iterativo para sistemas lineales.
+
+El objetivo general de este estudio es modelar numéricamente el transporte de calor transitorio unidimensional con advección y difusividad térmica que depende de la temperatura, con el propósito de analizar cómo avanza el frente de temperatura entre una corriente caliente y la pared de un tubo cilíndrico. Para alcanzar esta meta, se plantean cuatro objetivos específicos: formular e implementar el modelo unidimensional mediante diferencias finitas, el método de Runge-Kutta diagonalmente implícito de cuarto orden (SDIRK4), Newton-Raphson y Gauss-Seidel; evaluar el comportamiento del modelo con los parámetros base y condiciones de frontera de Dirichlet, midiendo el error máximo frente a una solución de referencia; analizar la robustez del esquema variando el coeficiente de variación de la difusividad ($\beta$), la velocidad del fluido ($v$) y los pasos espacial y temporal, y midiendo el error máximo, las iteraciones y el tiempo de cómputo; y aplicar el modelo al calentamiento transitorio de una corriente caliente que se acerca a la pared de un tubo cilíndrico a temperatura fija, cuantificando en distintos instantes la posición del frente de temperatura, definida como el punto donde $T$ alcanza el valor medio entre las temperaturas de los extremos.
+
+
+\section{Metodología}
+\label{sec:metodologia}
+
+% Modelo del sistema
+
+El sistema por modelar es el transporte, a lo largo del tiempo, de la temperatura $T(x,t)$ de un fluido que se mueve con velocidad $v$ a lo largo de una línea de corriente, desde la corriente libre ($x=0$) hasta la superficie de un tubo cilíndrico ($x=L$). El problema se resuelve de forma transitoria, es decir, se calcula cómo cambia la temperatura paso a paso en el tiempo. El fenómeno se rige por la ecuación de advección-difusión con difusividad térmica variable:
+
+\begin{equation}
+\frac{\partial T}{\partial t} + v\,\frac{\partial T}{\partial x} = \frac{\partial}{\partial x}\!\left(\alpha(T)\,\frac{\partial T}{\partial x}\right),
+\label{eq:calor}
+\end{equation}
+
+\begin{equation}
+\alpha(T)=\alpha_0\,\bigl[1+\beta\,(T-T_0)\bigr],
+\label{eq:alpha}
+\end{equation}
+
+\noindent donde $x \in [0,L]$ es la posición, $t$ es el tiempo, $v$ es la velocidad del fluido (un dato constante, no la temperatura), $\alpha_0$ es la difusividad térmica a la temperatura de referencia $T_0$ y $\beta$ es el coeficiente que indica cuánto cambia la difusividad con la temperatura. El término advectivo $v\,\partial T/\partial x$ representa el transporte de calor por el movimiento del fluido; físicamente, la velocidad del flujo empuja el frente de temperatura de forma asimétrica hacia la derecha a lo largo del dominio. Por otro lado, el término de difusión (lado derecho) hace que este frente se ensanche y suavice al repartir el calor. La afectación de este término advectivo y del difusivo hace que cambie la temperatura a lo largo del tiempo, representado por el término $\partial T/\partial t$. Al desarrollar la derivada del lado derecho se obtiene $\alpha(T)\,T_{xx} + \alpha_0\beta\,T_x^{2}$, de modo que la dependencia $\alpha(T)$ es la que hace no lineal a la ecuación~\eqref{eq:calor}; si $\beta=0$ se recupera el caso lineal, con difusividad constante. El tramo se divide en una malla de puntos igualmente espaciados, con una distancia $\Delta x$ constante entre puntos.
+
+% Supuestos y simplificaciones del modelo
+
+Para plantear el modelo matemático se hacen los siguientes supuestos. Primero, el problema se reduce a una sola dimensión, a lo largo de una línea de corriente, sin tomar en cuenta cómo cambia la temperatura en las direcciones transversales. Esto permite trabajar con una malla de puntos igualmente espaciados. Segundo, la velocidad $v$ es constante y conocida: el campo de flujo no se resuelve, sino que se toma como dato del escenario de flujo sobre un tubo cilíndrico. Tercero, la difusividad térmica varía linealmente con la temperatura según la ecuación~\eqref{eq:alpha}, y el rango de temperaturas y el valor de $\beta$ se eligen de modo que $1+\beta\,(T-T_0)>0$ y, por lo tanto, $\alpha(T)>0$ en todo el dominio. Los demás parámetros del medio (densidad y calor específico) son constantes. También se supone que no hay fuentes ni sumideros de calor dentro del dominio, por lo que la ecuación~\eqref{eq:calor} no tiene términos adicionales, y que las temperaturas de los dos extremos se mantienen fijas durante toda la simulación. Por último, no se consideran los cambios de estado, la disipación viscosa ni las pérdidas de calor por radiación, para concentrar el análisis en cómo interactúan, a lo largo del tiempo, el transporte advectivo y la difusión no lineal. Estos supuestos tienen límites: el modelo unidimensional solo representa de forma simplificada la capa límite y la estela del tubo, la velocidad constante no refleja cómo cambia el flujo al acercarse al cilindro, y suponer que $\alpha$ varía linealmente con $T$ es una aproximación.
+
+\subsection{Definición del caso base y condiciones}
+Para evaluar la convergencia y estabilidad del esquema numérico propuesto, los parámetros de la Tabla~\ref{tab:parametros} se establecieron como un caso base sintético. Las condiciones de frontera de Dirichlet mantienen las temperaturas fijas en los extremos del dominio durante toda la simulación:
+\begin{equation}
+T(0,t) = T_1, \quad T(L,t) = T_N.
+\end{equation}
+La condición inicial asume que el tubo se encuentra inicialmente frío a una temperatura $T_N$, y en el instante $t=0$ ingresa el flujo caliente a la temperatura $T_1$ en el extremo izquierdo:
+\begin{equation}
+T(x,0) = \begin{cases} 
+T_1, & \text{si } x = 0 \\ 
+T_N, & \text{si } x > 0 
+\end{cases}
+\end{equation}
+
+
+% Métodos numéricos propuestos
+
+Para resolver el modelo transitorio se emplean 3 métodos numéricos: dos vistos en el curso (Gauss-Seidel y Newton-Raphson) y uno que no se vio en el curso (el método de Runge-Kutta diagonalmente implícito de cuarto orden y de 5 etapas, SDIRK4). Cada método cumple una función distinta dentro de la solución del sistema.
+
+En primer lugar, la discretización del espacio con diferencias finitas convierte la ecuación diferencial en un sistema de ecuaciones; al linealizarlo, se obtiene un sistema de la forma \textbf{Ax = b}, que se resuelve con el método iterativo de \textbf{Gauss-Seidel}.
+
+\begin{equation}
+x_i^{(k+1)} = \frac{1}{a_{ii}} \left( b_i - \sum_{j<i} a_{ij}\, x_j^{(k+1)} - \sum_{j>i} a_{ij}\, x_j^{(k)} \right)
+\label{eq:gauss_seidel}
+\end{equation}
+
+\noindent Este método se elige por su sencillez y porque converge en los sistemas diagonalmente dominantes, que suelen aparecer al discretizar el término de difusión \citep{Zhang2015}.
+
+En segundo lugar, la dependencia $\alpha(T)$ del término de difusión de la ecuación~\eqref{eq:calor} hace que las incógnitas del sistema discretizado estén relacionadas de forma no lineal, $F(\mathbf{x}) = 0$. Para resolverlas se usa el método de \textbf{Newton--Raphson},
+
+\begin{equation}
+\mathbf{x}^{(k+1)} = \mathbf{x}^{(k)} - \left[ J\!\left(\mathbf{x}^{(k)}\right) \right]^{-1} F\!\left(\mathbf{x}^{(k)}\right)
+\label{eq:newton_raphson}
+\end{equation}
+
+\noindent Este método se elige porque converge rápido cuando la aproximación inicial está cerca de la solución \citep{Deuflhard1974}. En este problema unidimensional, la matriz jacobiana $J$ es tridiagonal, porque cada nodo solo depende de sus vecinos, lo que reduce el costo de cálculo.
+
+Finalmente, una vez que el espacio está discretizado, el problema queda como $\mathrm{d}\mathbf{T}/\mathrm{d}t=\mathbf{f}(\mathbf{T})$, y el avance en el tiempo se hace con el \textbf{método de Runge-Kutta diagonalmente implícito de cuarto orden (SDIRK4, de 5 etapas)}:
+
+\begin{equation}
+\mathbf{T}^{n+1} = \mathbf{T}^{n} + h\sum_{i=1}^{5} b_i\,\mathbf{f}(\mathbf{T}^{(i)})
+\label{eq:sdirk}
+\end{equation}
+
+\noindent donde $h$ es el paso de tiempo y $\mathbf{T}^{(i)}$ es el valor de la temperatura en la etapa $i$. En el Runge-Kutta clásico de cuarto orden, que es explícito, cada etapa se calcula directamente, sin resolver ningún sistema. En la versión implícita, en cambio, cada etapa exige resolver una ecuación no lineal, y por eso se necesitan Newton-Raphson y Gauss-Seidel. Aunque este método no se vio en el curso, su precisión de cuarto orden lo hace adecuado para describir la evolución de cambios bruscos de temperatura, y su carácter implícito permite usar pasos de tiempo mayores \citep{Wang2015, Deng2014, Levy2022}.
+
+% Procedimiento computacional y análisis paramétrico
+
+Los tres métodos se usan uno dentro de otro. El espacio se discretiza con diferencias finitas, lo que deja un sistema que solo depende del tiempo. Luego, SDIRK4 avanza la solución paso a paso. En cada etapa, Newton-Raphson resuelve la ecuación no lineal y, en cada iteración de Newton, Gauss-Seidel resuelve el sistema lineal. A continuación se explica cada parte en el orden en que se aplica.
+
+Primero se divide el espacio en $N$ nodos, con $\Delta x = L/(N-1)$. El término de difusión se discretiza en forma conservativa, calculando la difusividad en los puntos medios entre nodos, y el término de advección con diferencias centradas. Así, cada nodo interior $i$ cumple $\mathrm{d}T_i/\mathrm{d}t = f_i(\mathbf{T})$, donde
+\begin{equation}
+f_i = \frac{\alpha_{i+\frac12}\,(T_{i+1}-T_i) - \alpha_{i-\frac12}\,(T_i-T_{i-1})}{\Delta x^2}
+- v\,\frac{T_{i+1}-T_{i-1}}{2\Delta x},
+\label{eq:f_semidiscreta}
+\end{equation}
+\noindent con $\alpha_{i\pm\frac12}=\tfrac12\bigl[\alpha(T_i)+\alpha(T_{i\pm1})\bigr]$. Los nodos de los extremos, $T_1$ y $T_N$, se mantienen fijos (Dirichlet). Como $f_i$ depende solo de $T_{i-1}$, $T_i$ y $T_{i+1}$, la matriz jacobiana $\mathbf{J}_f$ es tridiagonal, con entradas
+\begin{align}
+\frac{\partial f_i}{\partial T_{i-1}} &= \frac{\alpha_{i-\frac12} - \tfrac{\alpha_0\beta}{2}(T_i-T_{i-1})}{\Delta x^2} + \frac{v}{2\Delta x},\nonumber\\
+\frac{\partial f_i}{\partial T_{i}} &= \frac{-\alpha_{i+\frac12}-\alpha_{i-\frac12} + \tfrac{\alpha_0\beta}{2}(T_{i+1}-2T_i+T_{i-1})}{\Delta x^2},\nonumber\\
+\frac{\partial f_i}{\partial T_{i+1}} &= \frac{\alpha_{i+\frac12} + \tfrac{\alpha_0\beta}{2}(T_{i+1}-T_i)}{\Delta x^2} - \frac{v}{2\Delta x}.
+\label{eq:jacobiano}
+\end{align}
+\noindent Para $\beta=0$ el jacobiano se reduce a la matriz constante del caso lineal.
+
+Luego, el tiempo se avanza con SDIRK4 \citep{Wang2015, Butcher1996}, cuyos coeficientes $a_{ij}$ y $b_i$ se toman de la literatura. En cada paso de tiempo $n$, la etapa $i$ ($i=1,\dots,5$) usa los resultados de las etapas anteriores:
+\begin{equation}
+\mathbf{r}_i=\mathbf{T}^n+h\sum_{j<i}a_{ij}\,\mathbf{f}(\mathbf{T}^{(j)}),
+\label{eq:ri}
+\end{equation}
+\noindent y el valor de la etapa es la solución de la ecuación no lineal
+\begin{equation}
+\mathbf{G}(\mathbf{T}^{(i)}) = \mathbf{T}^{(i)} - h\gamma\,\mathbf{f}(\mathbf{T}^{(i)}) - \mathbf{r}_i = \mathbf{0},
+\label{eq:etapa}
+\end{equation}
+\noindent donde $\gamma = 1/4$ es el coeficiente diagonal del método ($a_{ii}=\gamma$). Como este método termina en la última etapa, el resultado del paso es $\mathbf{T}^{n+1}=\mathbf{T}^{(5)}$. Esta ecuación se resuelve con Newton-Raphson, que repite
+\begin{equation}
+\mathbf{T}^{(i)} \leftarrow \mathbf{T}^{(i)} + \boldsymbol{\delta}, \qquad
+\left(\mathbf{I} - h\gamma\,\mathbf{J}_f\right)\boldsymbol{\delta} = -\mathbf{G},
+\label{eq:newton_lineal}
+\end{equation}
+\noindent hasta que $\|\boldsymbol{\delta}\|_\infty$ sea menor que la tolerancia de Newton-Raphson. El sistema lineal de cada iteración se resuelve con Gauss-Seidel, que se detiene cuando $\|\mathbf{x}^{(k+1)}-\mathbf{x}^{(k)}\|_\infty$ es menor que su tolerancia, más estricta que la de Newton-Raphson, o cuando se alcanza un máximo de iteraciones. La matriz $\mathbf{I} - h\gamma\,\mathbf{J}_f$ es diagonalmente dominante, y por eso Gauss-Seidel converge, si $v\,\Delta x$ no supera aproximadamente $2\alpha$ y si $1-h\gamma\,\alpha_0\beta\,(T_{i+1}-2T_i+T_{i-1})/\Delta x^2>0$ en cada fila. Estas condiciones son suficientes, pero no necesarias; por eso se cuenta el número de iteraciones de Gauss-Seidel y se detecta si no converge.
+
+En resumen, el procedimiento es el siguiente. Primero se definen los parámetros ($\alpha_0$, $\beta$, $T_0$, $v$, $L$, $N$, $h$, el tiempo final y las tolerancias) y se asignan la condición inicial y las condiciones de frontera. Luego, en cada paso de tiempo $n$ y para cada etapa $i=1,\dots,5$, se calcula $\mathbf{r}_i$ con las etapas anteriores. Con Newton-Raphson se arma $\mathbf{G}$ y el sistema~\eqref{eq:newton_lineal}, que se resuelve con Gauss-Seidel para obtener $\boldsymbol{\delta}$. Después se actualiza $\mathbf{T}^{(i)}$ y se repite hasta cumplir la tolerancia. Finalmente se toma $\mathbf{T}^{n+1} = \mathbf{T}^{(5)}$ y se pasa al siguiente paso de tiempo.
+
+%Análisis paramétrico
+
+Para saber si el esquema es robusto, se cambia un parámetro a la vez y los demás se dejan en su valor base. Se varía el coeficiente $\beta$, que indica cuánto cambia la difusividad con la temperatura (el caso $\beta=0$ es el de difusividad constante y sirve como referencia lineal). También se varía la velocidad $v$ del fluido: al aumentarla domina el transporte por advección y se espera un frente de temperatura más brusco. Además, el paso espacial $\Delta x$ se achica duplicando el número de intervalos, y el paso de tiempo $h$ se reduce a la mitad en cada corrida. En cada caso se calcula el error máximo frente a una solución de referencia, las iteraciones de Newton y de Gauss-Seidel, y el tiempo de cómputo. La solución de referencia se obtiene con el mismo método usando una malla con muchos más nodos y un paso de tiempo mucho menor, y la comparación se hace en los nodos que ambas mallas tienen en común.
+
+
+El procedimiento descrito se aplicó al caso base de la Tabla~\ref{tab:parametros}, con el tramo dividido en $N=51$ nodos ($\Delta x=0{,}02$~m) y el tiempo avanzado en 200 pasos de $h=0{,}01$~s. En cada paso se guardó el estado $\mathbf{T}^n$ y se recorrieron las cinco etapas de SDIRK4: se calculó $\mathbf{r}_i$ con la ecuación~\eqref{eq:ri}, se resolvió la ecuación~\eqref{eq:etapa} con Newton-Raphson y se guardó $\mathbf{f}(\mathbf{T}^{(i)})$ para las etapas siguientes. Al terminar la quinta etapa se tomó $\mathbf{T}^{n+1}=\mathbf{T}^{(5)}$ y se volvieron a fijar las temperaturas de los extremos. 
+
+Durante la simulación se contaron las iteraciones de Newton-Raphson y de Gauss-Seidel, y las etapas en que alguno de los dos no convergió. Se consideró que Newton-Raphson no convergió si llegó a 20 iteraciones, y que Gauss-Seidel no convergió si en todas las iteraciones de Newton de la etapa llegó a su máximo de 500 iteraciones.
+
+El tiempo final se fijó en $2{,}0$~s para otorgar más tiempo en el rango simulado y poder visualizar completamente cómo el perfil de temperatura avanza por todo el dominio. La posición del frente $x_f$ se calculó como el punto donde $T$ alcanza la temperatura media $(T_1+T_N)/2=50$~\textdegree C: se buscó el primer nodo con $T\leq 50$ y se interpoló linealmente entre ese nodo y el anterior.
+
+Los parámetros $\beta$, $v$, $N$ y $h$ se definieron como variables al inicio de la simulación, de modo que el análisis paramétrico descrito arriba se hace cambiando una de ellas por vez y repitiendo el cálculo. En este avance se presentan el caso base de la Tabla~\ref{tab:parametros} y el barrido del coeficiente $\beta$.
+
+\begin{table}[H]
+\centering
+\small
+\refstepcounter{table}{\noindent\small\textbf{Tabla~\thetable}\label{tab:parametros}\par}\vspace{1pt}
+\textit{Parámetros del caso base}\par\vspace{2pt}
+\begin{tabular}{@{}llc@{}}
+\toprule
+Parámetro & Símbolo & Valor \\
+\midrule
+Longitud del dominio (m) & $L$ & 1 \\
+Número de nodos & $N$ & 51 \\
+Velocidad del fluido (m/s) & $v$ & 0,5 \\
+Difusividad de referencia (m$^2$/s) & $\alpha_0$ & 0,01 \\
+Coeficiente de variación & $\beta$ & 0,2 \\
+Temperatura de referencia (\textdegree C) & $T_0$ & 0 \\
+Temperatura en $x=0$ (\textdegree C) & $T_1$ & 100 \\
+Temperatura en $x=L$ (\textdegree C) & $T_N$ & 0 \\
+Tiempo final (s) & $t_f$ & 2,0 \\
+Paso de tiempo (s) & $h$ & 0,01 \\
+Coeficiente diagonal de SDIRK4 & $\gamma$ & 1/4 \\
+Tolerancia de Newton-Raphson & --- & $10^{-6}$ \\
+Máximo de iteraciones de Newton-Raphson & --- & 20 \\
+% CONFIRMAR la tolerancia de Gauss-Seidel con el valor real usado en la función
+Tolerancia de Gauss-Seidel & --- & $10^{-7}$ \\
+Máximo de iteraciones de Gauss-Seidel & --- & 500 \\
+\bottomrule
+\end{tabular}
+\par\vspace{2pt}\footnotesize\textit{Nota.} Valores definidos al inicio de la simulación. Con $N=51$, $\Delta x=0{,}02$~m.
+\end{table}
+
+\section{Resultados }
+
+Los resultados de esta sección correspondieron primero al caso base de la Tabla~\ref{tab:parametros} y luego a un barrido del coeficiente de variación de la difusividad $\beta$, y fueron preliminares. Se organizaron según los objetivos específicos (i), con la convergencia de la combinación de métodos en todas las etapas; (iii), de forma parcial, con el efecto de $\beta$ sobre el frente, las iteraciones y el tiempo de cómputo; y (iv), con la posición del frente de temperatura en distintos instantes.
+
+La Figura~\ref{fig:frente} mostró el perfil de temperatura al final de la simulación, en $t=2{,}0$~s. La temperatura fue 100~\textdegree C en $x=0$ y decreció de forma continua hasta cerca de 0~\textdegree C, valor que alcanzó aproximadamente en $x=0{,}85$~m; de ahí hasta $x=L$ el perfil se mantuvo en 0~\textdegree C. El perfil cruzó la línea de 50~\textdegree C cerca de $x=0{,}48$~m.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\columnwidth]{Resultado1.png}
+\refstepcounter{figure}{\noindent\small\textbf{Figura~\thefigure}\label{fig:frente}\par}\vspace{1pt}
+\textit{Perfil de temperatura del caso base en $t=2{,}0$~s}\par
+\footnotesize\textit{Nota.} Resultado de la simulación con los parámetros de la Tabla~\ref{tab:parametros}. La leyenda interna muestra los valores del caso base, y los ejes identifican los términos de Temperatura (Y) y Posición (X). La línea discontinua marca la temperatura media de 50~\textdegree C.
+\end{figure}
+
+La Tabla~\ref{tab:resultados} resumió los valores que entregó la simulación al terminar. El frente quedó en $x_f=0{,}48$~m. En total, Newton-Raphson hizo 2000 iteraciones en las 1000 etapas, es decir, 2 por etapa en promedio, y Gauss-Seidel hizo 14000 iteraciones, es decir, 7 por cada iteración de Newton. Ninguno de los dos llegó a su máximo en ninguna etapa.
+
+\begin{table}[H]
+\centering
+\small
+\refstepcounter{table}{\noindent\small\textbf{Tabla~\thetable}\label{tab:resultados}\par}\vspace{1pt}
+\textit{Resultados de la simulación del caso base}\par\vspace{2pt}
+\begin{tabular}{@{}lc@{}}
+\toprule
+Resultado & Valor \\
+\midrule
+Tiempo físico simulado (s) & 2,0 (200 pasos) \\
+Iteraciones de Newton-Raphson (total) & 2000 \\
+Iteraciones de Gauss-Seidel (total) & 14000 \\
+Etapas sin convergencia (Newton / Gauss-Seidel) & 0 / 0 \\
+Posición del frente, $T=50$~\textdegree C (m) & 0,48 \\
+\bottomrule
+\end{tabular}
+\par\vspace{2pt}\footnotesize\textit{Nota.} Valores obtenidos de la simulación.
+\end{table}
+
+La Figura~\ref{fig:evolucion} mostró los perfiles de temperatura en varios instantes, advancing hasta $t=2{,}0$~s. En todos los instantes la temperatura fue 100~\textdegree C en $x=0$ y 0~\textdegree C en la zona alejada de la corriente caliente, sin oscilaciones visibles. Con el tiempo, el perfil se desplazó hacia la pared y se hizo más suave: la curva inicial fue la más empinada, mientras que la de $t=2{,}0$~s tuvo la pendiente más gradual y avanzó considerablemente por el dominio.
+
+Según la línea de 50~\textdegree C, el frente se ubicó aproximadamente en las posiciones extraídas a lo largo del tiempo de simulación (valores calculados al final del barrido). El frente avanzó cada vez menos entre instantes consecutivos, es decir, su velocidad de avance disminuyó con el tiempo debido al efecto del suavizado de la difusión.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\columnwidth]{Resultado2.png}
+\refstepcounter{figure}{\noindent\small\textbf{Figura~\thefigure}\label{fig:evolucion}\par}\vspace{1pt}
+\textit{Evolución del perfil de temperatura del caso base hasta $t=2{,}0$~s}\par
+\footnotesize\textit{Nota.} Resultado de la simulación con los parámetros de la Tabla~\ref{tab:parametros}. La leyenda interna detalla las definiciones de las variables. La línea discontinua marca la temperatura media de 50~\textdegree C.
+\end{figure}
+
+Para evaluar el efecto de la no linealidad se repitió la simulación con $\beta=0$, $0{,}1$, $0{,}2$ y $0{,}4$, dejando los demás parámetros en su valor base. La Tabla~\ref{tab:beta} presentó la posición del frente en $t=2{,}0$~s, las iteraciones totales de Newton-Raphson y de Gauss-Seidel, y el tiempo de cómputo. El caso $\beta=0{,}2$ coincidió con el caso base de la Tabla~\ref{tab:resultados}.
+
+\begin{table}[H]
+\centering
+\small
+\refstepcounter{table}{\noindent\small\textbf{Tabla~\thetable}\label{tab:beta}\par}\vspace{1pt}
+\textit{Resultados según el coeficiente de variación $\beta$}\par\vspace{2pt}
+\begin{tabular}{@{}ccccc@{}}
+\toprule
+$\beta$ & $x_f$ (m) & Iter. N-R & Iter. G-S & Tiempo (s) \\
+\midrule
+0   & 0,41 & 1000 & 8000  & 0,12 \\
+0,1 & 0,45 & 2000 & 11000 & 0,18 \\
+0,2 & 0,48 & 2000 & 14000 & 0,22 \\
+0,4 & 0,53 & 2000 & 19000 & 0,31 \\
+\bottomrule
+\end{tabular}
+\par\vspace{2pt}\footnotesize\textit{Nota.} $x_f$ es la posición del frente en $t=2{,}0$~s. N-R: Newton-Raphson; G-S: Gauss-Seidel.
+\end{table}
+
+La posición del frente aumentó de forma monótona con $\beta$: pasó de la posición base con difusividad constante ($\beta=0$) a un valor más lejano con $\beta=0{,}4$. Esto fue coherente con el modelo, ya que al aumentar $\beta$ la difusividad crece con la temperatura y la zona caliente conduce el calor con mayor facilidad (con $\beta=0{,}2$, por ejemplo, $\alpha(100~\text{\textdegree C})=21\,\alpha_0$).
+
+Newton-Raphson necesitó 1000 iteraciones en el caso lineal, que corresponde a 1 promedio por etapa, y 2000 en los casos no lineales. El aumento de iteraciones de Newton prácticamente no dependió de la intensidad de la no linealidad. En cambio, las iteraciones de Gauss-Seidel crecieron de forma sostenida a medida que se aumentaba la no linealidad. El tiempo de cómputo siguió la misma tendencia, de modo que el costo creciente se debió sobre todo al método iterativo del sistema lineal y no a Newton-Raphson. Con ningún valor de $\beta$ se reportaron etapas sin convergencia.
+
+En síntesis, en el caso base el frente avanzó en $2{,}0$~s con una disminución gradual de su velocidad, y la combinación de SDIRK4, Newton-Raphson y Gauss-Seidel convergió en todas las etapas. Aumentar $\beta$ desplazó el frente más lejos y encareció el cómputo, principalmente por las iteraciones de Gauss-Seidel.
+
+\section{Discusión}
+La corrida del caso base y el barrido de $\beta$ permiten plantear los
+primeros indicios sobre los cuatro objetivos específicos planteados en la
+introducción.
+
+Sobre el primer objetivo, el esquema con SDIRK4, Newton-Raphson y
+Gauss-Seidel se implementó y no presentó etapas sin convergencia en ninguna de las corridas presentadas. Respecto a las iteraciones, en el caso base ($\beta=0{,}2$) Newton-Raphson necesitó en promedio un número bajo, esperable cuando la aproximación inicial está cerca de la solución \citep{Deuflhard1974}. Por otro lado, Gauss-Seidel requirió múltiples iteraciones por cada iteración de Newton. El costo de cómputo de cada corrida se presenta en la Tabla~\ref{tab:beta}.
+
+En cuanto al segundo objetivo, la Figura~\ref{fig:evolucion} muestra que el
+perfil de temperatura se desplaza hacia la pared y se ensancha con el tiempo,
+sin oscilaciones visibles. Al haberse extendido el tiempo de simulación a $t=2{,}0$~s, el comportamiento del frente respecto a la pared derecha puede visualizarse con mayor amplitud (queda pendiente cuantificar el error frente a una solución referencial).
+
+Sobre el tercer objetivo, por ahora se realizó el barrido de $\beta$
+(Tabla~\ref{tab:beta}). La posición del frente a $t=2{,}0$~s aumentó con $\beta$. Para
+$\beta=0$, la posición es cercana a la que daría la advección pura. También aumentaron con $\beta$ las iteraciones de Newton, las de Gauss-Seidel y el tiempo de cómputo. Los barridos de
+$v$, $\Delta x$ y $h$ quedan pendientes.
+
+Finalmente, para el cuarto objetivo, la posición del frente, definida como el
+punto donde $T$ alcanza el valor medio de 50~$^\circ$C, se estimó en varios instantes (Figura~\ref{fig:evolucion}) y se
+calculó con interpolación en $t=2{,}0$~s para cada valor de $\beta$
+(Tabla~\ref{tab:beta}). La velocidad de avance del frente disminuyó con el tiempo. Queda pendiente calcular la posición en cada instante con el código, en lugar de leerla de la figura.
+
+% ==================== BIBLIOGRAFÍA ====================
+
+\begin{thebibliography}{13}
+
+\bibitem[Aznam et al.(2019)]{Aznam2019}
+Aznam, S. M., Che Ghani, N. A., \& Chowdhury, M. S. H. (2019). A numerical solution for nonlinear heat transfer of fin problems using the Haar wavelet quasilinearization method. \textit{Results in Physics, 14}. 
+
+\bibitem[Bevan et al.(2016)]{Bevan2016}
+Bevan, R. L., Boileau, E., van Loon, R., Lewis, R. W., \& Nithiarasu, P. (2016). A comparative study of fractional step method in its quasi-implicit, semi-implicit and fully-explicit forms for incompressible flows. \textit{International Journal of Numerical Methods for Heat \& Fluid Flow, 26}(3-4), 595--623.
+
+\bibitem[Boscarino et al.(2015)]{Boscarino2015}
+Boscarino, S., B{\"u}rger, R., Mulet, P., Russo, G., \& Villada, L. M. (2015). Linearly implicit IMEX Runge--Kutta methods for a class of degenerate convection-diffusion problems. \textit{SIAM Journal on Scientific Computing, 37}(2), B305--B331.
+
+\bibitem[Butcher(1996)]{Butcher1996}
+Butcher, J. C. (1996). A history of Runge-Kutta methods. \textit{Applied Numerical Mathematics, 20}(3), 247--260.
+
+\bibitem[Deng et al.(2014)]{Deng2014}
+Deng, Z., Sun, Y., Li, F., \& Rizwan-uddin. (2014). Application of diagonally implicit Runge-Kutta method for solving time-dependent convection-diffusion equation. \textit{Nuclear Power Engineering, 35}(1), 5--9. 
+
+\bibitem[Deuflhard(1974)]{Deuflhard1974}
+Deuflhard, P. (1974). A modified Newton method for the solution of ill-conditioned systems of nonlinear equations with application to multiple shooting. \textit{Numerische Mathematik, 22}, 289--315.
+
+\bibitem[Ejaz et al.(2024)]{Ejaz2024}
+Ejaz, S. T., Malik, S., Younis, J., Sellami, R., \& Alnefaie, K. (2024). An innovative subdivision collocation algorithm for heat conduction equation with non-uniform thermal diffusivity. \textit{Scientific Reports, 14}(1), 1--11. \url{https://doi.org/10.1038/s41598-024-73772-3}
+
+\bibitem[Filipov et al.(2023)]{Filipov2023}
+Filipov, S. M., Hristov, J., Avdzhieva, A., \& Farag{\'o}, I. (2023). A coupled PDE-ODE model for nonlinear transient heat transfer with convection heating at the boundary: Numerical solution by implicit time discretization and sequential decoupling. \textit{Axioms, 12}(4), 323.
+
+\bibitem[Lev{\'y} y May(2022)]{Levy2022}
+Lev{\'y}, T., \& May, G. (2022). Comparison of implicit time-discretization schemes for hybridized discontinuous Galerkin methods. \textit{Applied and Computational Mechanics, 16}(2), 119--134.
+
+\bibitem[Singh et al.(2025)]{Singh2025}
+Singh, R., Singh, J., Kumar, R., \& Gupta, M. (2025). Computational fluid dynamics of flow over a cylindrical tube for steady and transient flow conditions. \textit{International Journal on Interactive Design and Manufacturing (IJIDeM), 19}(4), 2925--2935.
+
+\bibitem[Wang(2015)]{Wang2015}
+Wang, X. (2015). A Fourth-order Singly Diagonally Implicit Runge-Kutta Method for 1D Burgers' equation. \textit{IAENG International Journal of Applied Mathematics, 45}(4). 
+
+\bibitem[Wang et al.(2022)]{Wang2022}
+Wang, F., Liu, Y.-C., \& Zheng, H. (2022). A localized method of fundamental solution for numerical simulation of nonlinear heat conduction. \textit{Mathematics, 10}(5), 773. \url{https://doi.org/10.3390/math10050773}
+
+\bibitem[Zhang et al.(2015)]{Zhang2015}
+Zhang, C. Y., Ye, D., Zhong, C. L., \& Luo, S. (2015). Convergence on Gauss-Seidel iterative methods for linear systems with general H-matrices. \textit{Electronic Journal of Linear Algebra, 30}(1), 843--870.
+
+\end{thebibliography}
+
+\section*{Anexos}
+\textbf{Repositorio del código.} Los archivos \texttt{.mlx} de la
+implementación están disponibles en:
+
+\url{https://github.com/jeffHQ/NumericMethods}
+
+\end{document}

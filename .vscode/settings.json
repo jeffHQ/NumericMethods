@@ -1,0 +1,69 @@
+{
+  "latex-workshop.latex.outDir": "%DIR%/build",
+  "latex-workshop.latex.autoBuild.run": "onSave",
+  "latex-workshop.view.pdf.viewer": "tab",
+  "latex-workshop.latex.recipe.default": "first",
+  "latex-workshop.latex.clean.fileTypes": [
+    "*.aux",
+    "*.log",
+    "*.out",
+    "*.toc",
+    "*.bbl",
+    "*.blg",
+    "*.fls",
+    "*.fdb_latexmk",
+    "*.synctex.gz"
+  ],
+  "latex-workshop.latex.tools": [
+    {
+      "name": "tectonic",
+      "command": "tectonic",
+      "args": [
+        "-X",
+        "compile",
+        "--synctex",
+        "--keep-logs",
+        "--outdir",
+        "%OUTDIR%",
+        "%DOC_EXT%"
+      ]
+    },
+    {
+      "name": "latexmk",
+      "command": "latexmk",
+      "args": [
+        "-synctex=1",
+        "-interaction=nonstopmode",
+        "-file-line-error",
+        "-pdf",
+        "-outdir=%OUTDIR%",
+        "%DOC%"
+      ]
+    }
+  ],
+  "latex-workshop.latex.recipes": [
+    {
+      "name": "tectonic (instalado)",
+      "tools": [
+        "tectonic"
+      ]
+    },
+    {
+      "name": "latexmk (MiKTeX / TeX Live)",
+      "tools": [
+        "latexmk"
+      ]
+    }
+  ],
+  "files.associations": {
+    "*.m": "matlab"
+  },
+  "latex-workshop.latex.rootFile.doNotPrompt": true,
+  "latex-workshop.latex.search.rootFiles.include": [
+    "informe/reporte.tex"
+  ],
+  "latex-workshop.latex.watch.files.ignore": [
+    "**/plantilla_elsevier/**",
+    "**/versiones_previas/**"
+  ]
+}
